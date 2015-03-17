@@ -1,0 +1,52 @@
+$ ps
+  PID TTY          TIME CMD
+ 2540 pts/6    00:00:00 bash
+ 3726 pts/6    00:00:00 ps
+
+/* 后台运行服务器 */
+$./serv &
+[1] 3727
+
+/* 检查服务器运行时状态 */
+/* 从输出结果可以知道，服务器对应的本地端口号为9877的套接字处于监听状态，它有通配 "*" 的本地 IP 地址*/
+$ netstat -a 
+Active Internet connections (servers and established)
+Proto Recv-Q Send-Q Local Address           Foreign Address         State      
+tcp        0      0 *:9877                  *:*                     LISTEN   
+
+$ ps
+  PID TTY          TIME CMD
+ 2540 pts/6    00:00:00 bash
+ 3727 pts/6    00:00:00 serv
+ 3868 pts/6    00:00:00 ps
+
+
+$./client 127.0.0.1
+
+$ netstat -a 
+Active Internet connections (servers and established)
+Proto Recv-Q Send-Q Local Address           Foreign Address         State      
+tcp        0      0 *:9877                  *:*                     LISTEN     
+tcp        0      0 localhost:9877          localhost:54395         ESTABLISHED
+tcp        0      0 localhost:54395         localhost:9877          ESTABLISHED
+
+
+
+
+$ ./client 127.0.0.1
+Unix Network Program
+Unix Network Program
+Linux, Hello             
+Linux, Hello
+^D
+
+$ netstat -a | grep 9877
+tcp        0      0 *:9877                  *:*                     LISTEN     
+tcp        0      0 localhost:54481         localhost:9877          TIME_WAIT  
+
+/* Z 表示进程处于僵死状态 */
+$ ps -t pts/6 -o pid,ppid,tty,stat,args,wchan 
+  PID  PPID TT       STAT COMMAND                     WCHAN
+ 2540 31781 pts/6    Ss+  bash                        n_tty_read
+ 3727  2540 pts/6    S    ./serv                      inet_csk_wait_for_connect
+ 3893  3727 pts/6    Z    [serv] <defunct>            exit
